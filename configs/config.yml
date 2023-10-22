@@ -2,6 +2,8 @@ http:
   port: "8080"
 
 db:
+  host: postgresql
+  port: 5432
   user: postgres
   db-name: "todo-db"
   ssl-mode: "disable"

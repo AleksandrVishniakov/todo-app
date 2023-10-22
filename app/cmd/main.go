@@ -25,7 +25,9 @@ func init() {
 }
 
 func main() {
-	_, err := repositories.NewPostgresDB(&repositories.DBConfigs{
+	db, err := repositories.NewPostgresDB(&repositories.DBConfigs{
+		Host:     viper.GetString("db.host"),
+		Port:     viper.GetString("db.port"),
 		Username: viper.GetString("db.user"),
 		Password: os.Getenv("DB_PASSWORD"),
 		DBName:   viper.GetString("db.db-name"),
@@ -36,7 +38,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	handler := handlers.NewHandler()
+	log.Println("DB-PING", db.Ping())
+
+	handler := handlers.NewHandler(db)
 	server := servers.NewHTTPServer(viper.GetString("http.port"), handler.InitRoutes())
 
 	if err := server.Run(); err != nil {
