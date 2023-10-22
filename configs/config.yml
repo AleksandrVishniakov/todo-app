@@ -1,0 +1,7 @@
+http:
+  port: "8080"
+
+db:
+  user: postgres
+  db-name: "todo-db"
+  ssl-mode: "disable"
