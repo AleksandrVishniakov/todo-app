@@ -7,3 +7,15 @@ db:
   user: postgres
   db-name: "todo-db"
   ssl-mode: "disable"
+
+  tables:
+    users: users
+    tokens: tokens
+    todos: todos
+
+tokens:
+  refresh:
+    ttl: 2592000 #1 month
+
+  access:
+    ttl: 600 #15 minutes

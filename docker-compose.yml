@@ -6,11 +6,8 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-#      - postgresql
       postgresql:
         condition: service_healthy
-#    networks:
-#      - todo
 
   postgresql:
     image: postgres:14-alpine
@@ -28,8 +25,3 @@ services:
       interval: 2s
       timeout: 5s
       retries: 5
-#    networks:
-#      - todo
-
-#networks:
-#  todo:

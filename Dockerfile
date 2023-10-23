@@ -14,4 +14,4 @@ WORKDIR /bin
 COPY configs ./configs/
 COPY .env ./
 COPY --from=build /usr/local/go/src/todo-app/app/bin/app /bin/app
-CMD [".app"]
+CMD ["app"]

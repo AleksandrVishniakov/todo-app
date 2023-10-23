@@ -8,6 +8,7 @@ import (
 	"todo-app/app/internal/handlers"
 	"todo-app/app/internal/repositories"
 	"todo-app/app/internal/servers"
+	"todo-app/app/internal/services"
 )
 
 func init() {
@@ -39,8 +40,9 @@ func main() {
 	}
 
 	log.Println("DB-PING", db.Ping())
-
-	handler := handlers.NewHandler(db)
+	repo := repositories.NewRepository(db)
+	service := services.NewService(repo)
+	handler := handlers.NewHandler(service)
 	server := servers.NewHTTPServer(viper.GetString("http.port"), handler.InitRoutes())
 
 	if err := server.Run(); err != nil {
