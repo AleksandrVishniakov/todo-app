@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SignUp</title>
+
+    <style>
+        #sign-up-form {
+            height: 100px;
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+    </style>
+
+</head>
+<body>
+<h1>Sign Up</h1>
+<form id="sign-up-form">
+    <input type="text" placeholder="login" id="login-field">
+    <input type="password" placeholder="password" id="password-field">
+    <button type="submit">Submit</button>
+</form>
+<a href="http://localhost:8080/auth/signin">sign in</a>
+
+<script>
+    const form = document.querySelector("#sign-up-form")
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault()
+        const login = document.querySelector("#login-field").value
+        const password = document.querySelector("#password-field").value
+
+        await signIn(login, password)
+    })
+
+    const signIn = async (login, password) => {
+        const user = {
+            login: login,
+            password: password
+        }
+
+        const response = await fetch("http://localhost:8080/auth/signup", {
+            method: 'POST',
+            headers: {
+                "Content-Type": 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(user)
+        })
+
+        const json = await response.json()
+        if (!response.ok) {
+            console.error('Ошибка запроса HTTP:', response.status)
+            console.error(json)
+            return
+        }
+
+        window.location.replace("http://localhost:8080/todo/list")
+    }
+</script>
+</body>
+</html>

@@ -2,11 +2,8 @@ package repositories
 
 import (
 	"database/sql"
-	"github.com/spf13/viper"
 	"time"
 )
-
-var todosTable = viper.GetString("db.tables.todos")
 
 type todo struct {
 	db *sql.DB
@@ -17,8 +14,7 @@ func newToDo(db *sql.DB) *todo {
 }
 
 func (t *todo) GetAllMessagesById(userId int) ([]ToDoEntity, error) {
-	rows, err := t.db.Query("SELECT * FROM $1 WHERE user_id = $2",
-		todosTable,
+	rows, err := t.db.Query("SELECT * FROM todos WHERE user_id = $1",
 		userId,
 	)
 
@@ -42,8 +38,7 @@ func (t *todo) GetAllMessagesById(userId int) ([]ToDoEntity, error) {
 }
 
 func (t *todo) UpdateMessageById(id int, messageText, messageColor string, messageDate time.Time) error {
-	_, err := t.db.Exec("UPDATE $1 SET message_text=$2, message_color=$3, message_date=$4 WHERE id=$5",
-		todosTable,
+	_, err := t.db.Exec("UPDATE todos SET message_text=$1, message_color=$2, message_date=$3 WHERE id=$4",
 		messageText,
 		messageColor,
 		messageDate,
@@ -54,10 +49,28 @@ func (t *todo) UpdateMessageById(id int, messageText, messageColor string, messa
 }
 
 func (t *todo) DeleteMessageById(id int) error {
-	_, err := t.db.Exec("DELETE FROM $1 WHERE id=$2",
-		todosTable,
+	_, err := t.db.Exec("DELETE FROM todos WHERE id=$1",
 		id,
 	)
 
 	return err
+}
+
+func (t *todo) AddMessage(userId int, todo ToDoEntity) (ToDoEntity, error) {
+	var id int
+	row := t.db.QueryRow("INSERT INTO todos (user_id, message_text, message_date, message_color) VALUES ($1, $2, $3, $4) RETURNING id",
+		userId,
+		todo.ToDoText,
+		todo.ToDoDate,
+		todo.ToDoColor,
+	)
+
+	if err := row.Scan(&id); err != nil {
+		return ToDoEntity{}, err
+	}
+
+	todo.Id = id
+	todo.UserId = userId
+
+	return todo, nil
 }

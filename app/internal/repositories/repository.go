@@ -27,6 +27,7 @@ type Authorization interface {
 
 type ToDoManager interface {
 	GetAllMessagesById(userId int) ([]ToDoEntity, error)
+	AddMessage(userId int, todo ToDoEntity) (ToDoEntity, error)
 	UpdateMessageById(id int, messageText, messageColor string, messageDate time.Time) error
 	DeleteMessageById(id int) error
 }

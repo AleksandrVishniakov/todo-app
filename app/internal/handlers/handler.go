@@ -1,62 +1,75 @@
 package handlers
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/sessions"
 	"net/http"
+	"os"
 	"todo-app/app/internal/services"
 	"todo-app/app/internal/services/auth"
 )
 
 type Handler struct {
 	service *services.Service
+	store   *sessions.CookieStore
 }
 
 func NewHandler(service *services.Service) *Handler {
-	return &Handler{service: service}
+	return &Handler{
+		service: service,
+		store:   sessions.NewCookieStore([]byte(os.Getenv("COOKIE_STORE_KEY"))),
+	}
 }
 
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.Default()
+	router.Use(h.authCookieEncoder())
 
-	auth := router.Group("/auth")
+	//router.Static("/", "web/build/")
+	router.LoadHTMLFiles("web/build/index.html", "web/build/sign-in.html", "web/build/sign-up.html")
+
+	authorization := router.Group("/auth")
 	{
-		auth.POST("/signin", h.signIn)
-		auth.POST("/signup", h.signUp)
-		auth.POST("/refresh", h.refreshTokens)
+		authorization.POST("/signin", h.signIn)
+		authorization.POST("/signup", h.signUp)
+		authorization.GET("/refresh", h.refreshTokens)
 	}
 
 	api := router.Group("/api", h.userAuthorization)
 	{
-		api.GET("/")
+		api.GET("/todos")
+		api.DELETE("/todo")
+		api.PUT("/todo")
+		api.POST("/todo")
 	}
 
 	todo := router.Group("/todo", h.userAuthorization)
 	{
-		todo.GET("/", h.sayHello)
+		todo.GET("/list", h.parseListPage)
 	}
 
 	return router
 }
 
 func (h *Handler) refreshTokens(c *gin.Context) {
-	var request = struct {
-		RefreshToken string `json:"refreshToken"`
-		Id           int    `json:"id"`
-	}{}
-
-	err := c.BindJSON(&request)
-	if err != nil {
-		newResponseError(c, http.StatusBadRequest, err.Error())
+	refreshToken, exists := c.Get("refresh_token")
+	if !exists {
+		newResponseError(c, http.StatusBadRequest, "refresh token does not exist")
+		return
+	}
+	id, exists := c.Get("id")
+	if !exists {
+		newResponseError(c, http.StatusBadRequest, "id does not exist")
 		return
 	}
 
-	responseTokens, err := h.service.Authorization.RefreshAccessToken(request.Id, request.RefreshToken)
+	responseTokens, err := h.service.Authorization.RefreshAccessToken(id.(int), refreshToken.(string))
 	if err != nil {
 		newResponseError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
+	h.setAuthCookie(c, id.(int), responseTokens.RefreshToken)
 	c.JSON(http.StatusOK, *responseTokens)
 }
 
@@ -80,6 +93,7 @@ func (h *Handler) signIn(c *gin.Context) {
 		return
 	}
 
+	h.setAuthCookie(c, u.Id, responseTokens.RefreshToken)
 	c.JSON(http.StatusOK, *responseTokens)
 }
 
@@ -102,9 +116,31 @@ func (h *Handler) signUp(c *gin.Context) {
 		return
 	}
 
+	h.setAuthCookie(c, id, responseTokens.RefreshToken)
 	c.JSON(http.StatusOK, *responseTokens)
 }
 
-func (h *Handler) sayHello(c *gin.Context) {
-	fmt.Fprint(c.Writer, "Heelo")
+func (h *Handler) setAuthCookie(c *gin.Context, id int, refreshToken string) {
+	authCookie, err := h.store.Get(c.Request, "auth-cookie")
+	if err != nil {
+		newResponseError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	authCookie.Options = &sessions.Options{
+		MaxAge:   86400 * 7,
+		HttpOnly: true,
+	}
+
+	authCookie.Values["id"] = id
+	authCookie.Values["refresh_token"] = refreshToken
+
+	if err = authCookie.Save(c.Request, c.Writer); err != nil {
+		newResponseError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+}
+
+func (h *Handler) parseListPage(c *gin.Context) {
+	c.HTML(http.StatusOK, "index.html", nil)
 }

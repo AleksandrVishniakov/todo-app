@@ -12,6 +12,7 @@ RUN go build -o ./bin/app cmd/main.go
 FROM scratch
 WORKDIR /bin
 COPY configs ./configs/
+COPY web/build ./web/build/
 COPY .env ./
 COPY --from=build /usr/local/go/src/todo-app/app/bin/app /bin/app
 CMD ["app"]

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
+	"log"
 	"time"
 )
 
@@ -12,6 +13,7 @@ type responseError struct {
 }
 
 func newResponseError(c *gin.Context, code int, message string) {
+	log.Printf("%d\t%s\n", code, message)
 	c.AbortWithStatusJSON(code, responseError{
 		Message:   message,
 		Code:      code,
