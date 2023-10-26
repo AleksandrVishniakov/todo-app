@@ -1,4 +1,4 @@
-import {createElement} from '../render.js';
+import {createElement} from '../src/render.js';
 
 const createLoadMoreButtonTemplate = () => '<button class="load-more" type="button">Загрузить дальше</button>';
 

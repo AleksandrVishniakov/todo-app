@@ -2,9 +2,8 @@
 
 .board__tasks{
     display: flex;
-    flex-flow: row wrap;
-    width: 100%;
-    justify-content: center;
+    flex-direction: row;
+    
 }
 
 .card {

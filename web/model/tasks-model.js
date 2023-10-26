@@ -5,7 +5,12 @@ export default class TasksModel {
 
   getTasks = () => this.tasks;
 
-  addTask(task) {
-    this.tasks.push(task)
+  addTask = (newTask) => {
+    this.tasks.push(newTask)
+  }
+
+  removeTask = (task) => {
+    this.tasks.splice(this.tasks.indexOf(task), 1)
+    console.log(this.tasks)
   }
 }

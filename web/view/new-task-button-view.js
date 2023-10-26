@@ -1,10 +1,17 @@
-import {createElement} from '../render.js';
+import {createElement} from '../src/render.js';
 
 const createNewTaskButtonTemplate = () => '<button class="control__button">+ ДОБАВИТЬ ЗАДАЧУ</button>';
 
 export default class NewTaskButtonView {
+
+  handleClick = null;
+
+  constructor(callback) {
+    this.handleClick = callback;
+    this.getElement().addEventListener('click', this.clickHandler);
+  }
+
   getTemplate() {
-    this.element = createNewTaskButtonTemplate()
     return createNewTaskButtonTemplate();
   }
 
@@ -16,11 +23,12 @@ export default class NewTaskButtonView {
     return this.element;
   }
 
-  onclick(callback) {
-    this.element.addEventListener('click', callback)
-  }
-
   removeElement() {
     this.element = null;
   }
+
+  clickHandler = (evt) => {
+    evt.preventDefault();
+    this.handleClick();
+  };
 }
